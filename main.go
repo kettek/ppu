@@ -177,6 +177,8 @@ func main() {
 		}),
 	)
 
+	selectEntry(nil) // Just to ensure UI is sync'd
+
 	container := container.NewBorder(search, toolbar, nil, nil, results)
 
 	w.SetContent(container)
