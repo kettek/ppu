@@ -94,6 +94,7 @@ func main() {
 				"kg",
 				"count",
 			})
+			format.SetText("count")
 			tags := widget.NewSelectEntry(getAllTags())
 			form := &widget.Form{
 				Items: []*widget.FormItem{
