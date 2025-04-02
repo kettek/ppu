@@ -56,7 +56,7 @@ func main() {
 	}
 
 	refreshResults := func() {
-		listedEntries = filterEntriesByTags(entries, stringToTags(search.Text))
+		listedEntries = sortEntriesByPPU(filterEntriesByTags(entries, stringToTags(search.Text)))
 		results.UnselectAll()
 		results.Refresh()
 		selectEntry(nil)
@@ -94,7 +94,7 @@ func main() {
 			items[2].(*widget.Label).SetText(fmt.Sprintf("%g", entry.Cost))
 			items[3].(*widget.Label).SetText(fmt.Sprintf("%.2f", ppu))
 
-			tags.SetText(strings.Join(entry.Tags, " "))
+			tags.SetText(strings.Join(entry.Tags, ", "))
 		},
 	)
 	results.OnSelected = func(id widget.ListItemID) {
@@ -144,6 +144,20 @@ func main() {
 			popup.Show()
 		}),
 		widget.NewButtonWithIcon("", theme.ContentCopyIcon(), func() {
+			if listEntry == nil {
+				return
+			}
+			entries = append(entries, &Entry{
+				Name:   listEntry.Name,
+				Tags:   listEntry.Tags,
+				Cost:   listEntry.Cost,
+				Units:  listEntry.Units,
+				Format: listEntry.Format,
+			})
+			writeEntries()
+			refreshResults()
+		}),
+		widget.NewButtonWithIcon("", theme.StorageIcon(), func() {
 			var popup *widget.PopUp
 			name := widget.NewEntry()
 			name.SetText(listEntry.Name)
@@ -157,7 +171,7 @@ func main() {
 			})
 			format.SetText(string(listEntry.Format))
 			tags := widget.NewSelectEntry(getAllTags())
-			tags.SetText(strings.Join(listEntry.Tags, " "))
+			tags.SetText(strings.Join(listEntry.Tags, ", "))
 			form := &widget.Form{
 				Items: []*widget.FormItem{
 					{Text: "Name", Widget: name},
@@ -198,7 +212,7 @@ func main() {
 		}),
 	)
 
-	selectEntry(nil) // Just to ensure UI is sync'd
+	refreshResults()
 
 	container := container.NewBorder(search, toolbar, nil, nil, results)
 
