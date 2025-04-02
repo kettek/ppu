@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"strconv"
@@ -17,8 +18,24 @@ import (
 var appTabs *container.AppTabs
 
 func main() {
-	a := app.New()
+	a := app.NewWithID("net.kettek.ppu")
 	w := a.NewWindow("PPU")
+
+	// Try to load in entries.
+	jsonData := a.Preferences().StringWithFallback("entries", "[]")
+	if err := json.Unmarshal([]byte(jsonData), &entries); err != nil {
+		fmt.Println("Error loading entries:", err)
+		entries = []*Entry{}
+	}
+
+	writeEntries := func() {
+		data, err := json.Marshal(entries)
+		if err != nil {
+			fmt.Println("Error writing entries:", err)
+			return
+		}
+		a.Preferences().SetString("entries", string(data))
+	}
 
 	var listedEntries []*Entry
 	var listEntry *Entry
@@ -115,6 +132,7 @@ func main() {
 						Units:  units,
 						Format: UnitFormat(format.SelectedText()),
 					})
+					writeEntries()
 					refreshResults()
 					popup.Hide()
 				},
@@ -157,6 +175,7 @@ func main() {
 					listEntry.Cost = cost
 					listEntry.Units = units
 					listEntry.Format = UnitFormat(format.SelectedText())
+					writeEntries()
 					refreshResults()
 					popup.Hide()
 				},
@@ -171,6 +190,7 @@ func main() {
 			for i, ent := range entries {
 				if ent == listEntry {
 					entries = append(entries[:i], entries[i+1:]...)
+					writeEntries()
 					refreshResults()
 					return
 				}
