@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"time"
 )
 
 var entries []*Entry
@@ -20,6 +21,7 @@ type Entry struct {
 	Units  float64 // kg?
 	Format UnitFormat
 	Tags   []string
+	Date   time.Time
 }
 
 func getAllTags() []string {

@@ -6,6 +6,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -13,6 +14,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	xwidget "fyne.io/x/fyne/widget"
 )
 
 var appTabs *container.AppTabs
@@ -113,6 +115,10 @@ func main() {
 			})
 			format.SetText("count")
 			tags := widget.NewSelectEntry(getAllTags())
+			t := time.Now()
+			calendar := xwidget.NewCalendar(t, func(t2 time.Time) {
+				t = t2
+			})
 			form := &widget.Form{
 				Items: []*widget.FormItem{
 					{Text: "Name", Widget: name},
@@ -120,6 +126,7 @@ func main() {
 					{Text: "Units", Widget: units},
 					{Text: "Format", Widget: format},
 					{Text: "Cost", Widget: cost},
+					{Text: "Date", Widget: calendar},
 				},
 				OnSubmit: func() {
 					units, _ := strconv.ParseFloat(units.Text, 64)
@@ -131,6 +138,7 @@ func main() {
 						Cost:   cost,
 						Units:  units,
 						Format: UnitFormat(format.SelectedText()),
+						Date:   t,
 					})
 					writeEntries()
 					refreshResults()
@@ -172,6 +180,10 @@ func main() {
 			format.SetText(string(listEntry.Format))
 			tags := widget.NewSelectEntry(getAllTags())
 			tags.SetText(strings.Join(listEntry.Tags, ", "))
+			t := listEntry.Date
+			calendar := xwidget.NewCalendar(t, func(t2 time.Time) {
+				t = t2
+			})
 			form := &widget.Form{
 				Items: []*widget.FormItem{
 					{Text: "Name", Widget: name},
@@ -179,6 +191,7 @@ func main() {
 					{Text: "Units", Widget: units},
 					{Text: "Format", Widget: format},
 					{Text: "Cost", Widget: cost},
+					{Text: "Date", Widget: calendar},
 				},
 				OnSubmit: func() {
 					units, _ := strconv.ParseFloat(units.Text, 64)
@@ -189,6 +202,7 @@ func main() {
 					listEntry.Cost = cost
 					listEntry.Units = units
 					listEntry.Format = UnitFormat(format.SelectedText())
+					listEntry.Date = t
 					writeEntries()
 					refreshResults()
 					popup.Hide()
