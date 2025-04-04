@@ -43,6 +43,16 @@ func getAllTags() []string {
 	return tags
 }
 
+func matchExtended(e *Entry, ext string) bool {
+	now := time.Now()
+	if ext == "recent" {
+		if e.Date.After(now.Add(-time.Hour * 24 * 7)) {
+			return true
+		}
+	}
+	return false
+}
+
 func filterEntriesByTags(entries []*Entry, tags []string) []*Entry {
 	var entries2 []*Entry
 
