@@ -2,11 +2,13 @@ module github.com/kettek/ppu
 
 go 1.24.0
 
-require fyne.io/fyne/v2 v2.5.5
+require (
+	fyne.io/fyne/v2 v2.5.5
+	fyne.io/x/fyne v0.0.0-20250106132206-3228f6c50107
+)
 
 require (
 	fyne.io/systray v1.11.0 // indirect
-	fyne.io/x/fyne v0.0.0-20250106132206-3228f6c50107 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fredbi/uri v1.1.0 // indirect

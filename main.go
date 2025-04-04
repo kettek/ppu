@@ -181,6 +181,9 @@ func main() {
 			tags := widget.NewSelectEntry(getAllTags())
 			tags.SetText(strings.Join(listEntry.Tags, ", "))
 			t := listEntry.Date
+			if t.IsZero() {
+				t = time.Now()
+			}
 			calendar := xwidget.NewCalendar(t, func(t2 time.Time) {
 				t = t2
 			})
