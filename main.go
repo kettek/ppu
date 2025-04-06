@@ -116,8 +116,17 @@ func main() {
 			format.SetText("count")
 			tags := widget.NewSelectEntry(getAllTags())
 			t := time.Now()
+			var calendarPopup *widget.PopUp
+			var dateButton *widget.Button
 			calendar := xwidget.NewCalendar(t, func(t2 time.Time) {
 				t = t2
+				dateButton.SetText(t.Local().Format("2006-01-02"))
+			})
+			dateButton = widget.NewButton(t.Local().Format("2006-01-02"), func() {
+				if calendarPopup == nil {
+					calendarPopup = widget.NewPopUp(calendar, w.Canvas())
+				}
+				calendarPopup.ShowAtRelativePosition(fyne.NewPos(0, 0), dateButton)
 			})
 			form := &widget.Form{
 				Items: []*widget.FormItem{
@@ -126,7 +135,7 @@ func main() {
 					{Text: "Units", Widget: units},
 					{Text: "Format", Widget: format},
 					{Text: "Cost", Widget: cost},
-					{Text: "Date", Widget: calendar},
+					{Text: "Date", Widget: dateButton},
 				},
 				OnSubmit: func() {
 					units, _ := strconv.ParseFloat(units.Text, 64)
@@ -184,8 +193,17 @@ func main() {
 			if t.IsZero() {
 				t = time.Now()
 			}
+			var calendarPopup *widget.PopUp
+			var dateButton *widget.Button
 			calendar := xwidget.NewCalendar(t, func(t2 time.Time) {
 				t = t2
+				dateButton.SetText(t.Local().Format("2006-01-02"))
+			})
+			dateButton = widget.NewButton(t.Local().Format("2006-01-02"), func() {
+				if calendarPopup == nil {
+					calendarPopup = widget.NewPopUp(calendar, w.Canvas())
+				}
+				calendarPopup.ShowAtRelativePosition(fyne.NewPos(0, 0), dateButton)
 			})
 			form := &widget.Form{
 				Items: []*widget.FormItem{
@@ -194,7 +212,7 @@ func main() {
 					{Text: "Units", Widget: units},
 					{Text: "Format", Widget: format},
 					{Text: "Cost", Widget: cost},
-					{Text: "Date", Widget: calendar},
+					{Text: "Date", Widget: dateButton},
 				},
 				OnSubmit: func() {
 					units, _ := strconv.ParseFloat(units.Text, 64)
