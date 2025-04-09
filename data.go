@@ -63,12 +63,17 @@ func filterEntriesByTags(entries []*Entry, tags []string) []*Entry {
 				continue
 			}
 			t = strings.ToLower(t)
+
+			recent := matchExtended(e, t)
+			if recent {
+				continue
+			}
+
 			missing := true
 			tags := append(e.Tags, strings.ToLower(e.Name))
 			for _, t2 := range tags {
 				t2 = strings.ToLower(t2)
 				if strings.Contains(t2, t) {
-					//if t == t2 {
 					missing = false
 					break
 				}
