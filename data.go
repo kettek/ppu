@@ -1,6 +1,8 @@
 package main
 
 import (
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -43,11 +45,40 @@ func getAllTags() []string {
 	return tags
 }
 
+var months = []string{
+	"january", "february", "march", "april", "may", "june",
+	"july", "august", "september", "october", "november", "december",
+}
+
+var shortMonths = []string{
+	"jan", "feb", "mar", "apr", "may", "jun",
+	"jul", "aug", "sep", "oct", "nov", "dec",
+}
+
 func matchExtended(e *Entry, ext string) bool {
 	now := time.Now()
 	if ext == "recent" {
 		if e.Date.After(now.Add(-time.Hour * 24 * 7)) {
 			return true
+		}
+	} else if slices.Contains(months, ext) {
+		if strings.ToLower(e.Date.Month().String()) == ext {
+			return true
+		}
+	} else if slices.Contains(shortMonths, ext) {
+		short := strings.ToLower(e.Date.Month().String()[0:3])
+		if short == ext {
+			return true
+		}
+	} else {
+		number, err := strconv.Atoi(ext)
+		if err == nil {
+			if e.Date.Year() == number {
+				return true
+			}
+			if e.Date.Month() == time.Month(number) {
+				return true
+			}
 		}
 	}
 	return false
