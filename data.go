@@ -24,6 +24,7 @@ type Entry struct {
 	Format UnitFormat
 	Tags   []string
 	Date   time.Time
+	Values map[string]any
 }
 
 func getAllTags() []string {

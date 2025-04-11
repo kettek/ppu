@@ -43,6 +43,7 @@ func main() {
 	var listEntry *Entry
 
 	var search *widget.Entry
+	var headers *fyne.Container
 	var results *widget.List
 	var toolbar *fyne.Container
 
@@ -68,17 +69,44 @@ func main() {
 	search.OnChanged = func(s string) {
 		refreshResults()
 	}
+
+	headerLabels := []fyne.CanvasObject{
+		widget.NewLabel("name"),
+		widget.NewLabel("unit"),
+		widget.NewLabel("cost"),
+		widget.NewLabel("ppu"),
+	}
+	for _, name := range fieldSlice {
+		field := fieldMap[name]
+		if field != nil {
+			headerLabels = append(headerLabels, widget.NewLabel(field.Label()))
+		}
+	}
+	headers = container.New(layout.NewGridLayout(len(headerLabels)), headerLabels...)
+
 	results = widget.NewList(
 		func() int {
 			return len(listedEntries)
 		},
 		func() fyne.CanvasObject {
+
+			labels := []fyne.CanvasObject{
+				widget.NewLabel("name"),
+				widget.NewLabel("unit"),
+				widget.NewLabel("cost"),
+				widget.NewLabel("ppu"),
+			}
+
+			for _, name := range fieldSlice {
+				field := fieldMap[name]
+				if field != nil {
+					labels = append(labels, widget.NewLabel(field.Label()))
+				}
+			}
+
 			return container.New(layout.NewVBoxLayout(),
-				container.New(layout.NewGridLayout(4),
-					widget.NewLabel("name"),
-					widget.NewLabel("unit"),
-					widget.NewLabel("cost"),
-					widget.NewLabel("ppu"),
+				container.New(layout.NewGridLayout(len(labels)),
+					labels...,
 				),
 				widget.NewLabel("tags"),
 			)
@@ -95,6 +123,13 @@ func main() {
 			items[1].(*widget.Label).SetText(fmt.Sprintf("%g", entry.Units))
 			items[2].(*widget.Label).SetText(fmt.Sprintf("%g", entry.Cost))
 			items[3].(*widget.Label).SetText(fmt.Sprintf("%.2f", ppu))
+
+			for i, name := range fieldSlice {
+				field := fieldMap[name]
+				if field != nil {
+					items[i+4].(*widget.Label).SetText(field.Value(entry))
+				}
+			}
 
 			tags.SetText(strings.Join(entry.Tags, ", "))
 		},
@@ -128,27 +163,40 @@ func main() {
 				}
 				calendarPopup.ShowAtRelativePosition(fyne.NewPos(0, 0), dateButton)
 			})
+
+			formItems := []*widget.FormItem{
+				{Text: "Name", Widget: name},
+				{Text: "Tags", Widget: tags},
+				{Text: "Units", Widget: units},
+				{Text: "Format", Widget: format},
+				{Text: "Cost", Widget: cost},
+				{Text: "Date", Widget: dateButton},
+			}
+			entry := &Entry{}
+			formFieldItems := getFieldFormItems(entry)
+			formFieldModifiers := getFieldFormModifiers()
+			formItems = append(formItems, formFieldItems...)
+
 			form := &widget.Form{
-				Items: []*widget.FormItem{
-					{Text: "Name", Widget: name},
-					{Text: "Tags", Widget: tags},
-					{Text: "Units", Widget: units},
-					{Text: "Format", Widget: format},
-					{Text: "Cost", Widget: cost},
-					{Text: "Date", Widget: dateButton},
-				},
+				Items: formItems,
 				OnSubmit: func() {
 					units, _ := strconv.ParseFloat(units.Text, 64)
 					cost, _ := strconv.ParseFloat(cost.Text, 64)
 
-					entries = append(entries, &Entry{
-						Name:   name.Text,
-						Tags:   stringToTags(tags.Text),
-						Cost:   cost,
-						Units:  units,
-						Format: UnitFormat(format.SelectedText()),
-						Date:   t,
-					})
+					entry.Name = name.Text
+					entry.Tags = stringToTags(tags.Text)
+					entry.Cost = cost
+					entry.Units = units
+					entry.Format = UnitFormat(format.SelectedText())
+					entry.Date = t
+
+					for i, modifier := range formFieldModifiers {
+						if i < len(formFieldItems) {
+							modifier(entry, formFieldItems[i].Widget)
+						}
+					}
+
+					entries = append(entries, entry)
 					writeEntries()
 					refreshResults()
 					popup.Hide()
@@ -170,6 +218,7 @@ func main() {
 				Cost:   listEntry.Cost,
 				Units:  listEntry.Units,
 				Format: listEntry.Format,
+				Values: listEntry.Values,
 			})
 			writeEntries()
 			refreshResults()
@@ -205,15 +254,21 @@ func main() {
 				}
 				calendarPopup.ShowAtRelativePosition(fyne.NewPos(0, 0), dateButton)
 			})
+
+			formItems := []*widget.FormItem{
+				{Text: "Name", Widget: name},
+				{Text: "Tags", Widget: tags},
+				{Text: "Units", Widget: units},
+				{Text: "Format", Widget: format},
+				{Text: "Cost", Widget: cost},
+				{Text: "Date", Widget: dateButton},
+			}
+			formFieldItems := getFieldFormItems(listEntry)
+			formFieldModifiers := getFieldFormModifiers()
+			formItems = append(formItems, formFieldItems...)
+
 			form := &widget.Form{
-				Items: []*widget.FormItem{
-					{Text: "Name", Widget: name},
-					{Text: "Tags", Widget: tags},
-					{Text: "Units", Widget: units},
-					{Text: "Format", Widget: format},
-					{Text: "Cost", Widget: cost},
-					{Text: "Date", Widget: dateButton},
-				},
+				Items: formItems,
 				OnSubmit: func() {
 					units, _ := strconv.ParseFloat(units.Text, 64)
 					cost, _ := strconv.ParseFloat(cost.Text, 64)
@@ -224,6 +279,13 @@ func main() {
 					listEntry.Units = units
 					listEntry.Format = UnitFormat(format.SelectedText())
 					listEntry.Date = t
+
+					for i, modifier := range formFieldModifiers {
+						if i < len(formFieldItems) {
+							modifier(listEntry, formFieldItems[i].Widget)
+						}
+					}
+
 					writeEntries()
 					refreshResults()
 					popup.Hide()
@@ -249,7 +311,7 @@ func main() {
 
 	refreshResults()
 
-	container := container.NewBorder(search, toolbar, nil, nil, results)
+	container := container.NewBorder(container.NewVBox(search, headers), toolbar, nil, nil, results)
 
 	w.SetContent(container)
 
