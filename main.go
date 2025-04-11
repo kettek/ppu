@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math"
-	"strconv"
 	"strings"
 	"time"
 
@@ -60,7 +58,7 @@ func main() {
 	}
 
 	refreshResults := func() {
-		listedEntries = sortEntriesByPPU(filterEntriesByTags(entries, stringToTags(search.Text)))
+		listedEntries = filterEntriesByTags(entries, stringToTags(search.Text))
 		results.UnselectAll()
 		results.Refresh()
 		selectEntry(nil)
@@ -73,9 +71,6 @@ func main() {
 
 	headerLabels := []fyne.CanvasObject{
 		widget.NewLabel("name"),
-		widget.NewLabel("unit"),
-		widget.NewLabel("cost"),
-		widget.NewLabel("ppu"),
 	}
 	for _, field := range fields.GetFields() {
 		label := field.Label()
@@ -117,9 +112,6 @@ func main() {
 
 			labels := []fyne.CanvasObject{
 				widget.NewLabel("name"),
-				widget.NewLabel("unit"),
-				widget.NewLabel("cost"),
-				widget.NewLabel("ppu"),
 			}
 
 			for _, label := range fields.GetLabels() {
@@ -140,14 +132,8 @@ func main() {
 			tags := vbox[1].(*widget.Label)
 			items[0].(*widget.Label).SetText(entry.Name)
 
-			ppu := math.Round(entry.Cost/entry.Units*100) / 100
-
-			items[1].(*widget.Label).SetText(fmt.Sprintf("%g", entry.Units))
-			items[2].(*widget.Label).SetText(fmt.Sprintf("%g", entry.Cost))
-			items[3].(*widget.Label).SetText(fmt.Sprintf("%.2f", ppu))
-
 			for i, field := range fields.GetFields() {
-				items[i+4].(*widget.Label).SetText(field.Value(entry.Values))
+				items[i+1].(*widget.Label).SetText(field.Value(entry.Values))
 			}
 
 			tags.SetText(strings.Join(entry.Tags, ", "))
@@ -161,8 +147,6 @@ func main() {
 		widget.NewButtonWithIcon("", theme.ContentAddIcon(), func() {
 			var popup *widget.PopUp
 			name := widget.NewEntry()
-			units := widget.NewEntry()
-			cost := widget.NewEntry()
 			format := widget.NewSelectEntry([]string{
 				"kg",
 				"count",
@@ -186,9 +170,7 @@ func main() {
 			formItems := []*widget.FormItem{
 				{Text: "Name", Widget: name},
 				{Text: "Tags", Widget: tags},
-				{Text: "Units", Widget: units},
 				{Text: "Format", Widget: format},
-				{Text: "Cost", Widget: cost},
 				{Text: "Date", Widget: dateButton},
 			}
 			entry := &Entry{}
@@ -199,13 +181,8 @@ func main() {
 			form := &widget.Form{
 				Items: formItems,
 				OnSubmit: func() {
-					units, _ := strconv.ParseFloat(units.Text, 64)
-					cost, _ := strconv.ParseFloat(cost.Text, 64)
-
 					entry.Name = name.Text
 					entry.Tags = stringToTags(tags.Text)
-					entry.Cost = cost
-					entry.Units = units
 					entry.Format = UnitFormat(format.SelectedText())
 					entry.Date = t
 
@@ -234,8 +211,6 @@ func main() {
 			entries = append(entries, &Entry{
 				Name:   listEntry.Name,
 				Tags:   listEntry.Tags,
-				Cost:   listEntry.Cost,
-				Units:  listEntry.Units,
 				Format: listEntry.Format,
 				Values: listEntry.Values,
 			})
@@ -246,10 +221,6 @@ func main() {
 			var popup *widget.PopUp
 			name := widget.NewEntry()
 			name.SetText(listEntry.Name)
-			units := widget.NewEntry()
-			units.SetText(fmt.Sprintf("%g", listEntry.Units))
-			cost := widget.NewEntry()
-			cost.SetText(fmt.Sprintf("%g", listEntry.Cost))
 			format := widget.NewSelectEntry([]string{
 				"kg",
 				"count",
@@ -277,9 +248,7 @@ func main() {
 			formItems := []*widget.FormItem{
 				{Text: "Name", Widget: name},
 				{Text: "Tags", Widget: tags},
-				{Text: "Units", Widget: units},
 				{Text: "Format", Widget: format},
-				{Text: "Cost", Widget: cost},
 				{Text: "Date", Widget: dateButton},
 			}
 			formFieldItems := fields.GetFormItems(listEntry.Values)
@@ -289,13 +258,8 @@ func main() {
 			form := &widget.Form{
 				Items: formItems,
 				OnSubmit: func() {
-					units, _ := strconv.ParseFloat(units.Text, 64)
-					cost, _ := strconv.ParseFloat(cost.Text, 64)
-
 					listEntry.Name = name.Text
 					listEntry.Tags = stringToTags(tags.Text)
-					listEntry.Cost = cost
-					listEntry.Units = units
 					listEntry.Format = UnitFormat(format.SelectedText())
 					listEntry.Date = t
 

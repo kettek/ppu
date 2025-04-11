@@ -2,6 +2,7 @@ package fields
 
 import (
 	"slices"
+	"strconv"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -12,6 +13,10 @@ type Field interface {
 	Name() string
 	Label() string
 	Value(map[string]any) string
+}
+
+type FieldEditable interface {
+	Field
 	FormItem(map[string]any) *widget.FormItem
 	ModifyEntry(*map[string]any, fyne.CanvasObject)
 }
@@ -24,7 +29,9 @@ func GetFormItems(values map[string]any) []*widget.FormItem {
 	for _, name := range fieldSlice {
 		field := fieldMap[name]
 		if field != nil {
-			items = append(items, field.FormItem(values))
+			if fe, ok := field.(FieldEditable); ok {
+				items = append(items, fe.FormItem(values))
+			}
 		}
 	}
 	return items
@@ -35,7 +42,9 @@ func GetFormModifiers() []func(values *map[string]any, e fyne.CanvasObject) {
 	for _, name := range fieldSlice {
 		field := fieldMap[name]
 		if field != nil {
-			items = append(items, field.ModifyEntry)
+			if fe, ok := field.(FieldEditable); ok {
+				items = append(items, fe.ModifyEntry)
+			}
 		}
 	}
 	return items
@@ -65,6 +74,17 @@ func GetFields() []Field {
 		}
 	}
 	return fields
+}
+
+func GetFieldAsFloat(name string, values map[string]any) float64 {
+	if field, ok := fieldMap[name]; ok {
+		if val, ok := values[field.Name()].(string); ok {
+			if num, err := strconv.ParseFloat(val, 64); err == nil {
+				return num
+			}
+		}
+	}
+	return 0.0
 }
 
 func addField(field Field) {

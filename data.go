@@ -18,9 +18,7 @@ var (
 
 // Entry would be a... something
 type Entry struct {
-	Name   string  // Store name, etc.
-	Cost   float64 // Expressed in... whatever?
-	Units  float64 // kg?
+	Name   string // Store name, etc.
 	Format UnitFormat
 	Tags   []string
 	Date   time.Time
@@ -121,18 +119,6 @@ func filterEntriesByTags(entries []*Entry, tags []string) []*Entry {
 	}
 
 	return entries2
-}
-
-func sortEntriesByPPU(entries []*Entry) []*Entry {
-	// Sort by price per unit
-	for i := 0; i < len(entries)-1; i++ {
-		for j := 0; j < len(entries)-i-1; j++ {
-			if entries[j].Cost/entries[j].Units > entries[j+1].Cost/entries[j+1].Units {
-				entries[j], entries[j+1] = entries[j+1], entries[j]
-			}
-		}
-	}
-	return entries
 }
 
 func stringToTags(s string) []string {
