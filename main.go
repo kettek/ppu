@@ -29,6 +29,20 @@ func main() {
 		entries = []*Entry{}
 	}
 
+	// Let's also do an "upgrade" step.
+	var entryFields []map[string]any
+	if err := json.Unmarshal([]byte(jsonData), &entryFields); err == nil {
+		for i, entry := range entryFields {
+			for _, field := range fields.GetFields() {
+				if fu, ok := field.(FieldUpgradable); ok {
+					if k, v := fu.Upgrade(entry); k != "" {
+						entries[i].Values[k] = v
+					}
+				}
+			}
+		}
+	}
+
 	writeEntries := func() {
 		data, err := json.Marshal(entries)
 		if err != nil {
@@ -69,9 +83,7 @@ func main() {
 		refreshResults()
 	}
 
-	headerLabels := []fyne.CanvasObject{
-		widget.NewLabel("name"),
-	}
+	headerLabels := []fyne.CanvasObject{}
 	for _, field := range fields.GetFields() {
 		label := field.Label()
 		if fs, ok := field.(FieldSortable); ok {
@@ -110,9 +122,7 @@ func main() {
 		},
 		func() fyne.CanvasObject {
 
-			labels := []fyne.CanvasObject{
-				widget.NewLabel("name"),
-			}
+			labels := []fyne.CanvasObject{}
 
 			for _, label := range fields.GetLabels() {
 				labels = append(labels, widget.NewLabel(label))
@@ -130,10 +140,9 @@ func main() {
 			vbox := o.(*fyne.Container).Objects
 			items := vbox[0].(*fyne.Container).Objects
 			tags := vbox[1].(*widget.Label)
-			items[0].(*widget.Label).SetText(entry.Name)
 
 			for i, field := range fields.GetFields() {
-				items[i+1].(*widget.Label).SetText(field.Value(entry.Values))
+				items[i].(*widget.Label).SetText(field.Value(entry.Values))
 			}
 
 			tags.SetText(strings.Join(entry.Tags, ", "))
@@ -146,7 +155,6 @@ func main() {
 	toolbar = container.NewHBox(
 		widget.NewButtonWithIcon("", theme.ContentAddIcon(), func() {
 			var popup *widget.PopUp
-			name := widget.NewEntry()
 			format := widget.NewSelectEntry([]string{
 				"kg",
 				"count",
@@ -168,7 +176,6 @@ func main() {
 			})
 
 			formItems := []*widget.FormItem{
-				{Text: "Name", Widget: name},
 				{Text: "Tags", Widget: tags},
 				{Text: "Format", Widget: format},
 				{Text: "Date", Widget: dateButton},
@@ -181,7 +188,6 @@ func main() {
 			form := &widget.Form{
 				Items: formItems,
 				OnSubmit: func() {
-					entry.Name = name.Text
 					entry.Tags = stringToTags(tags.Text)
 					entry.Format = UnitFormat(format.SelectedText())
 					entry.Date = t
@@ -209,7 +215,6 @@ func main() {
 				return
 			}
 			entries = append(entries, &Entry{
-				Name:   listEntry.Name,
 				Tags:   listEntry.Tags,
 				Format: listEntry.Format,
 				Values: listEntry.Values,
@@ -219,8 +224,6 @@ func main() {
 		}),
 		widget.NewButtonWithIcon("", theme.StorageIcon(), func() {
 			var popup *widget.PopUp
-			name := widget.NewEntry()
-			name.SetText(listEntry.Name)
 			format := widget.NewSelectEntry([]string{
 				"kg",
 				"count",
@@ -246,7 +249,6 @@ func main() {
 			})
 
 			formItems := []*widget.FormItem{
-				{Text: "Name", Widget: name},
 				{Text: "Tags", Widget: tags},
 				{Text: "Format", Widget: format},
 				{Text: "Date", Widget: dateButton},
@@ -258,7 +260,6 @@ func main() {
 			form := &widget.Form{
 				Items: formItems,
 				OnSubmit: func() {
-					listEntry.Name = name.Text
 					listEntry.Tags = stringToTags(tags.Text)
 					listEntry.Format = UnitFormat(format.SelectedText())
 					listEntry.Date = t

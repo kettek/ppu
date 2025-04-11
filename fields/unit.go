@@ -1,6 +1,7 @@
 package fields
 
 import (
+	"fmt"
 	"slices"
 	"strconv"
 
@@ -72,6 +73,15 @@ func (p *Unit) Sort(entries []map[string]any) []int {
 		return 0
 	})
 	return unsorted
+}
+
+func (p *Unit) Upgrade(values map[string]any) (string, string) {
+	if val, ok := values["Units"].(float64); ok {
+		return "unit", fmt.Sprintf("%g", val)
+	} else if val, ok := values["units"].(float64); ok {
+		return "unit", fmt.Sprintf("%g", val)
+	}
+	return "", ""
 }
 
 func init() {

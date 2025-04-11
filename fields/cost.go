@@ -1,6 +1,7 @@
 package fields
 
 import (
+	"fmt"
 	"slices"
 	"strconv"
 
@@ -72,6 +73,15 @@ func (p *Cost) Sort(entries []map[string]any) []int {
 		return 0
 	})
 	return unsorted
+}
+
+func (p *Cost) Upgrade(values map[string]any) (string, string) {
+	if val, ok := values["cost"].(float64); ok {
+		return "cost", fmt.Sprintf("%g", val)
+	} else if val, ok := values["Cost"].(float64); ok {
+		return "cost", fmt.Sprintf("%g", val)
+	}
+	return "", ""
 }
 
 func init() {

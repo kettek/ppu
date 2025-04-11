@@ -9,6 +9,10 @@ type FieldSortable interface {
 	Sort(entries []map[string]any) []int
 }
 
+type FieldUpgradable interface {
+	Upgrade(fields map[string]any) (string, string)
+}
+
 type FieldVirtual interface {
 	Name() string
 	Label() string
