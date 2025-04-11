@@ -77,8 +77,35 @@ func main() {
 		widget.NewLabel("cost"),
 		widget.NewLabel("ppu"),
 	}
-	for _, label := range fields.GetLabels() {
-		headerLabels = append(headerLabels, widget.NewLabel(label))
+	for _, field := range fields.GetFields() {
+		label := field.Label()
+		if fs, ok := field.(FieldSortable); ok {
+			var reversed bool
+			button := widget.NewButton(label, func() {
+				fieldMaps := make([]map[string]any, len(listedEntries))
+				for i, entry := range listedEntries {
+					fieldMaps[i] = entry.Values
+				}
+				sortedEntries := make([]*Entry, len(listedEntries))
+				for i, index := range fs.Sort(fieldMaps) {
+					sortedEntries[i] = listedEntries[index]
+				}
+				listedEntries = sortedEntries
+
+				if reversed {
+					for i, j := 0, len(listedEntries)-1; i < j; i, j = i+1, j-1 {
+						listedEntries[i], listedEntries[j] = listedEntries[j], listedEntries[i]
+					}
+				}
+
+				reversed = !reversed
+
+				results.Refresh()
+			})
+			headerLabels = append(headerLabels, button)
+		} else {
+			headerLabels = append(headerLabels, widget.NewLabel(label))
+		}
 	}
 	headers = container.New(layout.NewGridLayout(len(headerLabels)), headerLabels...)
 

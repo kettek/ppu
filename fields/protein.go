@@ -1,6 +1,9 @@
 package fields
 
 import (
+	"slices"
+	"strconv"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/widget"
 )
@@ -37,6 +40,25 @@ func (p *Protein) ModifyEntry(values *map[string]any, e fyne.CanvasObject) {
 		*values = make(map[string]any)
 	}
 	(*values)[p.Name()] = e.(*widget.Entry).Text
+}
+
+func (p *Protein) Sort(entries []map[string]any) []int {
+	var unsorted []int
+	for i := range len(entries) {
+		unsorted = append(unsorted, i)
+	}
+	slices.SortFunc(unsorted, func(i, j int) int {
+		anum, err := strconv.Atoi(entries[i][p.Name()].(string))
+		if err != nil {
+			return 0
+		}
+		bnum, err := strconv.Atoi(entries[j][p.Name()].(string))
+		if err != nil {
+			return 0
+		}
+		return anum - bnum
+	})
+	return unsorted
 }
 
 func init() {
