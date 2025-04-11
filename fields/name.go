@@ -63,5 +63,5 @@ func (p *Name) Upgrade(values map[string]any) (string, string) {
 }
 
 func init() {
-	addField(&Name{})
+	addField(&Name{}, 0)
 }

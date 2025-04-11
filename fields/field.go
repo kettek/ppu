@@ -3,7 +3,6 @@ package fields
 import (
 	"slices"
 	"strconv"
-	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/widget"
@@ -20,6 +19,13 @@ type FieldEditable interface {
 	FormItem(map[string]any) *widget.FormItem
 	ModifyEntry(*map[string]any, fyne.CanvasObject)
 }
+
+type fieldEntry struct {
+	name     string
+	position int
+}
+
+var fieldEntries []fieldEntry
 
 var fieldMap = map[string]Field{}
 var fieldSlice []string
@@ -87,10 +93,23 @@ func GetFieldAsFloat(name string, values map[string]any) float64 {
 	return 0.0
 }
 
-func addField(field Field) {
+func addField(field Field, position int) {
+	fieldEntries = append(fieldEntries, fieldEntry{name: field.Name(), position: position})
+
 	fieldMap[field.Name()] = field
-	fieldSlice = append(fieldSlice, field.Name())
-	slices.SortStableFunc(fieldSlice, func(a, b string) int {
-		return strings.Compare(a, b)
+
+	slices.SortFunc(fieldEntries, func(i, j fieldEntry) int {
+		if i.position < j.position {
+			return -1
+		}
+		if i.position > j.position {
+			return 1
+		}
+		return 0
 	})
+
+	fieldSlice = make([]string, len(fieldEntries))
+	for i, entry := range fieldEntries {
+		fieldSlice[i] = entry.name
+	}
 }

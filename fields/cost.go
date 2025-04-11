@@ -85,5 +85,5 @@ func (p *Cost) Upgrade(values map[string]any) (string, string) {
 }
 
 func init() {
-	addField(&Cost{})
+	addField(&Cost{}, 5)
 }

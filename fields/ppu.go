@@ -66,5 +66,5 @@ func (p *PPU) Sort(entries []map[string]any) []int {
 }
 
 func init() {
-	addField(&PPU{})
+	addField(&PPU{}, 6)
 }

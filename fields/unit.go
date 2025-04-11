@@ -85,5 +85,5 @@ func (p *Unit) Upgrade(values map[string]any) (string, string) {
 }
 
 func init() {
-	addField(&Unit{})
+	addField(&Unit{}, 4)
 }

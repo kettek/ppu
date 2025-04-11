@@ -62,5 +62,5 @@ func (p *Protein) Sort(entries []map[string]any) []int {
 }
 
 func init() {
-	addField(&Protein{})
+	addField(&Protein{}, 6)
 }
