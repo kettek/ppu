@@ -15,6 +15,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	xwidget "fyne.io/x/fyne/widget"
+	"github.com/kettek/ppu/fields"
 )
 
 var appTabs *container.AppTabs
@@ -76,11 +77,8 @@ func main() {
 		widget.NewLabel("cost"),
 		widget.NewLabel("ppu"),
 	}
-	for _, name := range fieldSlice {
-		field := fieldMap[name]
-		if field != nil {
-			headerLabels = append(headerLabels, widget.NewLabel(field.Label()))
-		}
+	for _, label := range fields.GetLabels() {
+		headerLabels = append(headerLabels, widget.NewLabel(label))
 	}
 	headers = container.New(layout.NewGridLayout(len(headerLabels)), headerLabels...)
 
@@ -97,11 +95,8 @@ func main() {
 				widget.NewLabel("ppu"),
 			}
 
-			for _, name := range fieldSlice {
-				field := fieldMap[name]
-				if field != nil {
-					labels = append(labels, widget.NewLabel(field.Label()))
-				}
+			for _, label := range fields.GetLabels() {
+				labels = append(labels, widget.NewLabel(label))
 			}
 
 			return container.New(layout.NewVBoxLayout(),
@@ -124,11 +119,8 @@ func main() {
 			items[2].(*widget.Label).SetText(fmt.Sprintf("%g", entry.Cost))
 			items[3].(*widget.Label).SetText(fmt.Sprintf("%.2f", ppu))
 
-			for i, name := range fieldSlice {
-				field := fieldMap[name]
-				if field != nil {
-					items[i+4].(*widget.Label).SetText(field.Value(entry))
-				}
+			for i, field := range fields.GetFields() {
+				items[i+4].(*widget.Label).SetText(field.Value(entry.Values))
 			}
 
 			tags.SetText(strings.Join(entry.Tags, ", "))
@@ -173,8 +165,8 @@ func main() {
 				{Text: "Date", Widget: dateButton},
 			}
 			entry := &Entry{}
-			formFieldItems := getFieldFormItems(entry)
-			formFieldModifiers := getFieldFormModifiers()
+			formFieldItems := fields.GetFormItems(entry.Values)
+			formFieldModifiers := fields.GetFormModifiers()
 			formItems = append(formItems, formFieldItems...)
 
 			form := &widget.Form{
@@ -192,7 +184,7 @@ func main() {
 
 					for i, modifier := range formFieldModifiers {
 						if i < len(formFieldItems) {
-							modifier(entry, formFieldItems[i].Widget)
+							modifier(&entry.Values, formFieldItems[i].Widget)
 						}
 					}
 
@@ -263,8 +255,8 @@ func main() {
 				{Text: "Cost", Widget: cost},
 				{Text: "Date", Widget: dateButton},
 			}
-			formFieldItems := getFieldFormItems(listEntry)
-			formFieldModifiers := getFieldFormModifiers()
+			formFieldItems := fields.GetFormItems(listEntry.Values)
+			formFieldModifiers := fields.GetFormModifiers()
 			formItems = append(formItems, formFieldItems...)
 
 			form := &widget.Form{
@@ -282,7 +274,7 @@ func main() {
 
 					for i, modifier := range formFieldModifiers {
 						if i < len(formFieldItems) {
-							modifier(listEntry, formFieldItems[i].Widget)
+							modifier(&listEntry.Values, formFieldItems[i].Widget)
 						}
 					}
 
