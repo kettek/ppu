@@ -71,9 +71,33 @@ func main() {
 		}
 	}
 
+	var sortName string
+	var sortFunc func([]map[string]any) []int
+	var reversed bool
+	var sort = func() {
+		if sortFunc == nil {
+			return
+		}
+		fieldMaps := make([]map[string]any, len(listedEntries))
+		for i, entry := range listedEntries {
+			fieldMaps[i] = entry.Values
+		}
+		sortedEntries := make([]*Entry, len(listedEntries))
+		for i, index := range sortFunc(fieldMaps) {
+			sortedEntries[i] = listedEntries[index]
+		}
+		listedEntries = sortedEntries
+		if reversed {
+			for i, j := 0, len(listedEntries)-1; i < j; i, j = i+1, j-1 {
+				listedEntries[i], listedEntries[j] = listedEntries[j], listedEntries[i]
+			}
+		}
+	}
+
 	refreshResults := func() {
 		listedEntries = filterEntriesByTags(entries, stringToTags(search.Text))
 		results.UnselectAll()
+		sort()
 		results.Refresh()
 		selectEntry(nil)
 	}
@@ -87,26 +111,13 @@ func main() {
 	for _, field := range fields.GetFields() {
 		label := field.Label()
 		if fs, ok := field.(FieldSortable); ok {
-			var reversed bool
 			button := widget.NewButton(label, func() {
-				fieldMaps := make([]map[string]any, len(listedEntries))
-				for i, entry := range listedEntries {
-					fieldMaps[i] = entry.Values
+				if sortName == field.Name() {
+					reversed = !reversed
 				}
-				sortedEntries := make([]*Entry, len(listedEntries))
-				for i, index := range fs.Sort(fieldMaps) {
-					sortedEntries[i] = listedEntries[index]
-				}
-				listedEntries = sortedEntries
-
-				if reversed {
-					for i, j := 0, len(listedEntries)-1; i < j; i, j = i+1, j-1 {
-						listedEntries[i], listedEntries[j] = listedEntries[j], listedEntries[i]
-					}
-				}
-
-				reversed = !reversed
-
+				sortFunc = fs.Sort
+				sortName = field.Name()
+				sort()
 				results.Refresh()
 			})
 			headerLabels = append(headerLabels, button)
