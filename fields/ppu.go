@@ -18,7 +18,7 @@ func (p *PPU) Label() string {
 }
 
 func (p *PPU) Value(values map[string]any) string {
-	return fmt.Sprintf("%g", p.value(values))
+	return fmt.Sprintf("%.2f", p.value(values))
 }
 
 func (p *PPU) value(values map[string]any) float64 {
