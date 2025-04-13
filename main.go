@@ -33,9 +33,15 @@ func main() {
 	var entryFields []map[string]any
 	if err := json.Unmarshal([]byte(jsonData), &entryFields); err == nil {
 		for i, entry := range entryFields {
+			if entries[i].Values == nil {
+				entries[i].Values = make(map[string]any)
+			}
 			for _, field := range fields.GetFields() {
 				if fu, ok := field.(FieldUpgradable); ok {
 					if k, v := fu.Upgrade(entry); k != "" {
+						if entries[i].Values == nil {
+							entries[i].Values = make(map[string]any)
+						}
 						entries[i].Values[k] = v
 					}
 				}
