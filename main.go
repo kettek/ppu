@@ -231,11 +231,17 @@ func main() {
 			if listEntry == nil {
 				return
 			}
-			entries = append(entries, &Entry{
-				Tags:   listEntry.Tags,
-				Format: listEntry.Format,
-				Values: listEntry.Values,
-			})
+			entry := &Entry{
+				Values: make(map[string]any),
+			}
+			for k, v := range listEntry.Values {
+				entry.Values[k] = v
+			}
+			entry.Tags = make([]string, len(listEntry.Tags))
+			copy(entry.Tags, listEntry.Tags)
+			entry.Format = listEntry.Format
+			entry.Date = time.Now()
+			entries = append(entries, entry)
 			writeEntries()
 			refreshResults()
 		}),
