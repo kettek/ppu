@@ -29,13 +29,7 @@ func getAllTags() []string {
 	var tags []string
 	for _, entry := range entries {
 		for _, t := range entry.Tags {
-			found := false
-			for _, t2 := range tags {
-				if t == t2 {
-					found = true
-					break
-				}
-			}
+			found := slices.Contains(tags, t)
 			if !found {
 				tags = append(tags, t)
 			}
