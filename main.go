@@ -3,12 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -310,6 +312,66 @@ func main() {
 					return
 				}
 			}
+		}),
+		widget.NewButtonWithIcon("", theme.SettingsIcon(), func() {
+			var popup *widget.PopUp
+			var form *widget.Form
+			var formItems []*widget.FormItem
+
+			formItems = append(formItems, &widget.FormItem{
+				Text: "",
+				Widget: widget.NewButtonWithIcon("Export as JSON", theme.DownloadIcon(), func() {
+					dialog.ShowFileSave(func(writer fyne.URIWriteCloser, err error) {
+						if err != nil {
+							return
+						}
+						if writer == nil {
+							return
+						}
+						defer writer.Close()
+						data, err := json.Marshal(entries)
+						if err != nil {
+							dialog.ShowError(err, w)
+							return
+						}
+						writer.Write(data)
+					}, w)
+				}),
+			})
+			formItems = append(formItems, &widget.FormItem{
+				Text: "",
+				Widget: widget.NewButtonWithIcon("Import from JSON", theme.UploadIcon(), func() {
+					dialog.ShowFileOpen(func(reader fyne.URIReadCloser, err error) {
+						if err != nil {
+							return
+						}
+						if reader == nil {
+							return
+						}
+						defer reader.Close()
+						data, err := io.ReadAll(reader)
+						if err != nil {
+							dialog.ShowError(err, w)
+							return
+						}
+						var newEntries []*Entry
+						if err := json.Unmarshal(data, &newEntries); err != nil {
+							dialog.ShowError(err, w)
+							return
+						}
+						entries = newEntries
+						writeEntries()
+						refreshResults()
+					}, w)
+				}),
+			})
+
+			form = &widget.Form{
+				Items: formItems,
+			}
+			popup = widget.NewPopUp(form, w.Canvas())
+			popup.ShowAtRelativePosition(fyne.NewPos(0, 0), toolbar.Objects[4])
+			popup.Show()
 		}),
 	)
 
